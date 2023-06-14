@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title> basic </title>
+        <script src="{{url_for('static',filename='src/threejs.js')}}"></script>
+        <script src="{{url_for('static',filename='src/controls.js')}}"></script>
+        <script src="{{url_for('static',filename='src/colormaps255.js')}}"></script>
+        <script src="{{url_for('static',filename='src/fdm.js')}}"></script>
+        <script src="{{url_for('static',filename='src/helperfunctions.js')}}"></script>
+               <style>
+        body
+        {
+          margin: 0;
+          overflow: hidden;
+          background-color: dimgrey;
+          color: #FFFFFF;
+/*          font-size: meduim;*/
+          font-family: Verdana, Arial, Helvetica, sans-serif;
+        }
+        canvas
+        {
+          width: 100%;
+          height: 100%;
+          cursor: crosshair;
+        }
+        p
+        {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: white;
+        }
+        .wrapper
+        {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2%;
+        }
+        .one
+        {
+        grid-column: 1 / 2;
+        grid-row: 1;
+        width: 100%;
+        height: 5%;
+        font-size: 1vw;
+        }
+        .two
+        {
+        grid-column: 2 / 3;
+        grid-row: 1;
+        width: 100%;
+        height: 5%;
+        font-size: 1vw;
+        }
+        .three
+        {
+        grid-column: 3;
+        grid-row: 1;
+        width: 100%;
+        height: 5%;
+        font-size: 1vw;
+/*        border: solid black;*/
+        }
+        .inner-one
+        {
+        margin:1%
+        }
+        .inner-two
+        {
+        background: rgba(0,0,0,0.5);
+        padding: 1%;
+        }
+        .inner-three
+        {
+          margin:2%;
+          display: flex; justify-content: flex-end;
+        }
+        fieldset {display:inline-block;background: rgba(0,0,0,0.5);}
+        </style>
+    </head>
+    <body>
+
+
+<div class="wrapper" style="position: absolute; margin-top: 1%;width: 100%">
+  <div class="one">
+    <div class="inner-one">
+      <fieldset>
+        <legend>Controls</legend>
+        <div>
+          <input type="checkbox" id="animate-check" name="animate-check">
+          <strong><label for="animate-check">animate!</label></strong>
+        </div>
+        <div>
+          <input type="checkbox" id="apply-energy" name="apply-energy" checked>
+          <label for="apply-energy">apply hit</label>
+        </div>
+        <div>
+          <input type="checkbox" id="wire-frame" name="wire-frame" checked>
+          <label for="wire-frame">wire frame</label>
+        </div>
+        <button onclick="restart()">restart</button>
+        <div style="margin-top: 1%;">
+          <label for="color-select">Color Map:</label>
+        </div>
+        <select id="color-select">
+          <option value="">--Please choose an option--</option>
+          <option value="jetcmap">jet</option>
+          <option value="viridiscmap">viridis</option>
+          <option value="infernocmap">inferno</option>
+          <option value="seismiccmap">seismic</option>
+          <option value="RdYlBucmap">RdYlBu</option>
+        </select>
+        <div style="margin-top: 1%;">
+          <label for="boundary-select">Boundary condition:</label>
+        </div>
+        <select id="boundary-select">
+          <option value="">--Please choose an option--</option>
+          <option value="DirichletOption">Dirichlet</option>
+          <option value="NuemannOption">Nuemann</option>
+        </select>
+        <!-- <div><label for="name">initial equation:</label></div>
+        <input type="text" id="name" name="name" required minlength="4" maxlength="20" size="20" value="Math.exp(-8*Math.pow(x,2)-8*Math.pow(y,2))"> -->
+        <div style="margin-top: 1%;">spatial indices updated: <div id="counter">0</div> </div>
+
+      </fieldset>
+    </div>
+  </div>
+  <div class="two">
+    <div class="inner-two">
+    <p>
+    the finite difference method
+    </p>
+    <p>
+      <math display="block">
+        <mfrac>
+        <mfenced>
+        <msup>
+        <mi>∂</mi>
+        <mn>2</mn>
+        </msup>
+        <mi>U</mi>
+        </mfenced>
+        <msup>
+        <mi>∂α</mi>
+        <mn>2</mn>
+        </msup>
+        </mfrac>
+        <mo>
+        ≅
+        </mo>
+        <mfrac>
+        <mfenced><mi>U(α</mi><mo>+</mo><mi>h,t)</mi><mo>-</mo><mi>2U(α,t)</mi><mo>+</mo><mi> U(α</mi><mo>-</mo><mi>h,t)</mi></mfenced>
+        <msup>
+        <mi>h</mi>
+        <mn>2</mn>
+        </msup>
+        </mfrac>
+        <mo>
+        ,
+        </mo>
+        <mfrac>
+        <msup>
+        <mfenced>
+        <msup>
+        <mi>∂</mi>
+        <mn>2</mn>
+        </msup>
+        <mi>U</mi>
+        </mfenced>
+        </msup>
+        <msup>
+        <mi>∂t</mi>
+        <mn>2</mn>
+        </msup>
+        </mfrac>
+        <mo>
+        =
+        </mo>
+        <msup>
+        <mi>∇</mi>
+        <mn>2</mn>
+        </msup>
+        <mi>U</mi>
+      </math>
+    </p>
+    </div>
+  </div>
+  <div class="three">
+    <div class="inner-three">
+      <div><canvas id="canvas2d"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+    <script>
+
+
+const canvas2d = document.getElementById("canvas2d");
+const ctx = canvas2d.getContext("2d");
+const imageData = ctx.createImageData(201, 201);
+canvas2d.height = 201;
+canvas2d.width = 201;
+
+var colorkey = 'RdYlBucmap';
+const colorSelect = document.getElementById("color-select");
+colorSelect.addEventListener("change", (event) => {
+  if (event.target.value != "")
+  {
+    colorkey=event.target.value;
+    setYMinMax(geomXYZ);
+    setYColorArray(geomXYZ,mnY,mxY);
+  }
+});
+const wireframeSelect = document.getElementById("wire-frame");
+wireframeSelect.addEventListener("change", (event) => {
+  if (gaussWireFrame.material.visible){gaussWireFrame.material.visible=false;}
+  else{gaussWireFrame.material.visible=true;}
+});
+var anim = false;
+var init = true;
+const animateSelect = document.getElementById("animate-check");
+animateSelect.addEventListener("change", (event) => {
+  if (animateSelect.checked)
+    {
+      if (init)
+      {
+        for ( let i = 0; i < N_1; i ++ )
+        {
+          const u_n_row = [];
+          const q_row = [];
+          const u_np1_row = []
+          for ( let j = 0; j < N_1; j ++ )
+          {
+            u_n_row[j] = (geomXYZ[i*3*N_1+j*3+1]);
+            q_row[j] = 1;
+            u_np1_row[j] = 0;
+          }
+          u_n[i]=u_n_row;
+          q[i]=q_row;
+          u_nm1[i]=u_n_row;
+          u_np1[i]=u_np1_row;
+        }
+        starter();
+        // dirichlet();
+        applyBoundTypeInit();
+        // Nuemann1();
+        setA2B(u_nm1,u_n);
+        setA2B(u_n,u_np1);
+        init = false;
+      }
+      anim=true;
+    }
+  else{anim=false;}
+});
+var applyenergy = true;
+const applyenergySelect = document.getElementById("apply-energy");
+applyenergySelect.addEventListener("change", (event) => {
+  if (applyenergySelect.checked){applyenergy=true}
+  else{applyenergy=false;}
+});
+var applyBoundTypeInit;
+var applyBoundType;
+const boundarySelect = document.getElementById("boundary-select");
+boundarySelect.addEventListener("change", (event) => {
+  if (event.target.value === "DirichletOption")
+  {
+    applyBoundTypeInit =  dirichlet;
+    applyBoundType = dirichlet;
+  };
+  if (event.target.value === "NuemannOption")
+  {
+    applyBoundTypeInit = nuemann1;
+    applyBoundType = nuemann2;
+  }
+});
+
+
+const counter = document.getElementById("counter");
+const canvas = document.getElementById("canvas");
+const renderer = new THREE.WebGLRenderer({antialias: true,canvas: canvas});
+const textureLoader = new THREE.TextureLoader();
+renderer.setPixelRatio( window.devicePixelRatio );
+renderer.setSize(innerWidth,innerHeight);
+const camera = new THREE.PerspectiveCamera(25,innerWidth/innerHeight,.1,1000);
+const scene = new THREE.Scene();
+const group = new THREE.Group();
+const materialY = new THREE.LineBasicMaterial({color: 0x90EE90});
+const geometryY = new THREE.BufferGeometry().setFromPoints([
+new THREE.Vector3( 2.5, 0, 2.5 ),
+new THREE.Vector3( 2.5, 1.25, 2.5 )
+]);
+const axisY = new THREE.Line( geometryY, materialY );
+group.add( axisY );
+const materialX = new THREE.LineBasicMaterial({color: 0xADD8E6});
+const geometryX = new THREE.BufferGeometry().setFromPoints([
+new THREE.Vector3( 2.5, 0, 2.5 ),
+new THREE.Vector3( 5.25, 0, 2.5 )
+]);
+const axisX = new THREE.Line( geometryX, materialX );
+group.add( axisX );
+const materialZ = new THREE.LineBasicMaterial({color: 0xFF7276});
+const geometryZ = new THREE.BufferGeometry().setFromPoints([
+new THREE.Vector3( 2.5, 0, 2.5 ),
+new THREE.Vector3( 2.5, 0, 5.25 )
+]);
+const axisZ = new THREE.Line( geometryZ, materialZ );
+group.add( axisZ );
+scene.add(  group );
+const geometry = new ParametricGeometry( ParametricGeometries.gaussian3d(widthX,widthZ), res, res );
+const geomXYZ = geometry.attributes.position.array;
+setYMinMax(geomXYZ);
+setYColorArray(geomXYZ,mnY,mxY);
+const material = new THREE.MeshBasicMaterial( { side: THREE.DoubleSide,vertexColors: true } );
+const gauss = new THREE.Mesh( geometry, material );
+const material2 = new THREE.MeshBasicMaterial( { side: THREE.DoubleSide,color : 0xFFFFFF } );
+const gaussWireFrame = new THREE.LineSegments( geometry, material2 );
+group.add( gauss );
+group.add( gaussWireFrame );
+// gauss.material.visible=false;
+group.position.set(-widthX/2,0,-widthX/2);
+applyBoundTypeInit =  dirichlet;
+applyBoundType = dirichlet;
+
+for ( let i = 0; i < N_1; i ++ )
+{
+  const x_row = [];
+  const z_row = [];
+  const v_row = [];
+  for ( let j = 0; j < N_1; j ++ )
+  {
+    // const _x = geomXYZ[i*3*N_1+j*3];
+    // const _y = geomXYZ[i*3*N_1+j*3+2];
+    // x_row[j] = (_x);
+    // z_row[j] = (_y);
+    // v_row[j] = 12*Math.exp(-100*(Math.pow(_x-1,2))-100*(Math.pow(_y-1,2)));
+    v_row[j] = 0;
+  }
+  // xx[i]=x_row;
+  // zz[i]=z_row;
+  V[i]=v_row;
+}
+
+var counts = 0;
+var time = 0;
+document.addEventListener("keydown", logKey);
+function logKey(e) {
+  if (e.code==="KeyS")
+  {
+    for ( let i = 0; i < N_1; i ++ )
+    {
+      const u_n_row = [];
+      const q_row = [];
+      const u_np1_row = []
+      for ( let j = 0; j < N_1; j ++ )
+      {
+        u_n_row[j] = (geomXYZ[i*3*N_1+j*3+1]);
+        q_row[j] = 1;
+        u_np1_row[j] = 0;
+      }
+      u_n[i]=u_n_row;
+      q[i]=q_row;
+      u_nm1[i]=u_n_row;
+      u_np1[i]=u_np1_row;
+    }
+    starter();
+    // dirichlet();
+    // nuemann1();
+    applyBoundTypeInit();
+    setA2B(u_nm1,u_n);
+    setA2B(u_n,u_np1);
+    init = false;
+    anim=true;
+    animateSelect.checked = true;
+  }
+  if (e.code==="KeyB"){
+    applyBoundTypeInit = dirichlet
+    applyBoundType = dirichlet
+    for ( let i = 0; i < N_1; i ++ )
+    {
+      const v_row = [];
+      for ( let j = 0; j < N_1; j ++ )
+      {
+        const _x = geomXYZ[i*3*N_1+j*3];
+        const _y = geomXYZ[i*3*N_1+j*3+2];
+        v_row[j] = .5*(u_np1[i][j]-u_nm1[i][j])/dt;
+      }
+      V[i]=v_row;
+    }
+    starter();
+    applyBoundTypeInit();
+    setA2B(u_nm1,u_n);
+    setA2B(u_n,u_np1);
+
+  }
+}
+
+function restart(){location.reload();}
+
+var isHovering = false;
+function animate()
+{
+  requestAnimationFrame(animate);
+  renderer.render(scene,camera);
+  updateCamera();
+  raycaster.setFromCamera( pointer, camera );
+  if (anim){
+    looper();
+    // dirichlet();
+    applyBoundType();
+    // nuemann2();
+    setA2B(u_nm1,u_n);
+    setA2B(u_n,u_np1);
+    for ( let i = 0; i < N_1; i ++ )
+    {
+      for ( let j = 0; j < N_1; j ++ )
+      {
+        geomXYZ[i*3*N_1+j*3+1] = u_n[i][j]; ;
+      }
+    }
+    geometry.attributes.position.needsUpdate = true;
+    setYMinMax(geomXYZ);
+    setYColorArray(geomXYZ,mnY,mxY);
+    }
+
+  const intersects = raycaster.intersectObjects( [gauss], true );
+  if ( intersects.length % 2 === 1 ) {
+    isHovering = true;
+    const _x = intersects[ 0 ].point.x+2.5;
+    const _y = intersects[ 0 ].point.y;
+    const _z = intersects[ 0 ].point.z+2.5;
+    pointerXYZ.x = _x;
+    pointerXYZ.y = _y;
+    pointerXYZ.z = _z;
+  }
+  else{isHovering = false;}
+  counter.textContent = counts;
+
+};
+
+animate();
+
+
+
+    </script>
+    </body>
+</html>
+
