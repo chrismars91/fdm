@@ -1,5 +1,5 @@
 # fdm
-fdm is a finite difference 3d visualization with JavaScript and python
+fdm is a finite difference 3d visualization with JavaScript and python,
 similar project here: [https://satellitevisualization.pythonanywhere.com](https://chrisboligprojects.pythonanywhere.com/fdm)
 
 ## Details
