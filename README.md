@@ -6,7 +6,8 @@ similar project here: [https://satellitevisualization.pythonanywhere.com](https:
 
 FDM matrices update the mesh based on user applied  energy and initial conditions. Before every animation loop, a color map is applied based on high and low values. Stars out with Dirichlet boundary conditions (completely reflective, like a string tied to a wall) or you can choose the Nuemann conditions where the mesh is free to move
 
-![img]([http://url/to/img.png](https://raw.githubusercontent.com/chrisbolig/fdm/main/Screenshot%202023-06-14%20132813.png))
+
+![Screenshot 2023-06-14 132813](https://github.com/chrisbolig/fdm/assets/63374700/4550f9be-b1d9-403c-9fee-16e82dac6e59)
 
 ## License
 
